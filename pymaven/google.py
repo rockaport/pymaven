@@ -13,7 +13,7 @@ group_index = "group-index.xml"
 def fetch_master_index(_dest_dir: str) -> str:
     master_index_file = os.path.join(_dest_dir, master_index)
 
-    repo.fetch_file(master_index, master_index_file)
+    repo.fetch_file(master_index, master_index_file, overwrite=True)
 
     return master_index_file
 
@@ -45,7 +45,7 @@ def fetch_group_index(_dest_root_dir: str, _group_id: str) -> str:
 
     group_index_file = os.path.join(_dest_dir, group_index)
 
-    repo.fetch_file(_group_id_url + "/" + group_index, group_index_file)
+    repo.fetch_file(_group_id_url + "/" + group_index, group_index_file, overwrite=True)
 
     return group_index_file
 

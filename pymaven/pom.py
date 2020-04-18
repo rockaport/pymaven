@@ -11,7 +11,15 @@ def parse(_file: str) -> Artifact:
         # Unicode strings with encoding declaration are not supported
         xml_string = f.read().encode("utf-8")
 
-    xml_obj = objectify.fromstring(xml_string)
+    if not xml_string:
+        print("pom file is empty: {}".format(_file))
+        return Artifact()
+
+    try:
+        xml_obj = objectify.fromstring(xml_string)
+    except Exception as err:
+        print(err)
+        return Artifact()
 
     # build artifact
     artifact = Artifact()
@@ -39,9 +47,16 @@ def parse(_file: str) -> Artifact:
         for dep in xml_obj.dependencies:
             dep = dep.dependency
 
+            version = dep.version.text.translate(str.maketrans(dict.fromkeys("[]")))
+
+            # we need to pull this from properties
+            if "$" in version:
+                version = version.translate(str.maketrans(dict.fromkeys("${}")))
+                version = xml_obj.properties[version].text
+
             d = Artifact(dep.groupId.text,
                          dep.artifactId.text,
-                         dep.version.text.translate(str.maketrans(dict.fromkeys("[]"))))
+                         version)
             d.scope = Scope[dep.scope.text.lower()]
 
             artifact.dependencies.append(d)

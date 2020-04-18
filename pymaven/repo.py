@@ -11,24 +11,29 @@ from pymaven.packaging import Packaging
 repo_urls = ["https://maven.google.com", "https://jcenter.bintray.com"]
 
 
-def fetch_file(_url: str, _dest: str):
+def fetch_file(_url: str, _dest: str, overwrite: bool = True):
     # print("fetching {} to {}".format(_url, _dest))
 
-    if os.path.exists(_dest):
+    if not overwrite and os.path.exists(_dest):
         print("skipping: {}".format(_dest))
         return
 
+    not_found_count = 0
     for repo in repo_urls:
         try:
             # print("requesting {}".format(_url))
             urllib.request.urlretrieve(parse.urljoin(repo, _url), _dest)
             break
         except urllib.error.HTTPError as err:
-            # file may never exist, touch something
             if err.code == 404:
-                open(_dest, "a").close()
+                not_found_count = not_found_count + 1
             else:
                 print(err)
+
+    # file may never exist if it doesn't exist at both repos
+    # touch something to prevent trying to download again
+    if not_found_count == len(repo_urls):
+        open(_dest, "a").close()
 
 
 def fetch_artifact_files(_dest_root_dir: str, artifact: Artifact, parent: Artifact = None):
